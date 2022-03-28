@@ -11,6 +11,8 @@ from skimage import io
 #from ..filters import equalizer # 从上级目录的filters目录导入equalizer模块
 #
 import sys
+
+from torch import gt
 sys.path.append('/home/dl/users/wending/3D_Detect/OpenPCDet/')
 os.chdir('/home/dl/users/wending/3D_Detect/OpenPCDet/')
 print("*******************************************************************************************************",os.getcwd())
@@ -158,11 +160,6 @@ class KittiDataset(DatasetTemplate):
         pts_valid_flag = np.logical_and(val_flag_merge, pts_rect_depth >= 0)
 
         return pts_valid_flag
-    # ['Car', 'Pedestrian', 'Cyclist',' Van', 'Truck','Tram','Misc']
-    def  label_dict_convert(arr_nane):
-       label_dict= ['Car', 'Pedestrian', 'Cyclist',' Van', 'Truck','Tram','Misc']
-       
-
 
 
     def get_infos(self, train_or_val,num_workers=4, has_label=True, count_inside_pts=True, sample_id_list=None):
@@ -176,6 +173,7 @@ class KittiDataset(DatasetTemplate):
                 lidar_points='/home/dl/users/wending/3D_Detect/OpenPCDet/data/lidar/val/points/'
                 lidar_labels='/home/dl/users/wending/3D_Detect/OpenPCDet/data/lidar/val/labels/'
             print('%s sample_idx: %s' % (self.split, sample_idx))
+            print('train_or_val:' ,train_or_val)
             info = {}
             pc_info = {'num_features': 4, 'lidar_idx': sample_idx}
             info['point_cloud'] = pc_info
@@ -220,8 +218,15 @@ class KittiDataset(DatasetTemplate):
                 loc_lidar[:, 2] += h[:, 0] / 2
                 gt_boxes_lidar = np.concatenate([loc_lidar, l, w, h, -(np.pi / 2 + rots[..., np.newaxis])], axis=1)
                 annotations['gt_boxes_lidar'] = gt_boxes_lidar
+                ####gt_boxes_concate_label
+                arr_name = annotations['name'] 
+                gt_boxes_lidar_id = label_dict_convert(arr_name).reshape(-1, 1)
+                gt_boxes_only_lidar= np.concatenate(( annotations['gt_boxes_lidar'],gt_boxes_lidar_id,), axis=1)
+                #gt_boxes_lidar_id = np.concatenate((data_dict['gt_boxes'], gt_classes.reshape(-1, 1).astype(np.float32)), axis=1)
+                ####gt_boxes_concate_label#
+                
                 #annotations['my_lidar']  = 
-                np.savetxt(os.path.join(lidar_labels,sample_idx)+".txt", annotations['gt_boxes_lidar'] , fmt="%f", delimiter=" ")
+                np.savetxt(os.path.join(lidar_labels,sample_idx)+".txt", gt_boxes_only_lidar, fmt="%f", delimiter=" ")
                 
                 info['annos'] = annotations
 
@@ -456,6 +461,19 @@ class KittiDataset(DatasetTemplate):
         data_dict['image_shape'] = img_shape
         return data_dict
 
+    # ['Car', 'Pedestrian', 'Cyclist',' Van', 'Truck','Tram','Misc']
+def label_dict_convert(arr_name):
+    label_dicts= ['Car', 'Pedestrian', 'Cyclist','Van', 'Truck','Tram','Misc','Person_sitting','DontCare']
+    print("arr_name:", arr_name)
+    list_temp=[]
+    for n in arr_name:
+        if  n == 'DontCare':
+            continue
+        list_temp.append(label_dicts.index(n) + 1 )
+    gt_class_ids = np.array(list_temp)
+    #gt_class_ids = np.array([label_dicts.index(n) + 1     for n in arr_name], dtype=np.int32)
+    #print("gt_class_ids:", gt_class_ids)
+    return gt_class_ids
 
 def create_kitti_infos(dataset_cfg, class_names, data_path, save_path, workers=4):
     dataset = KittiDataset(dataset_cfg=dataset_cfg, class_names=class_names, root_path=data_path, training=False)
@@ -469,7 +487,7 @@ def create_kitti_infos(dataset_cfg, class_names, data_path, save_path, workers=4
     print('---------------Start to generate data infos---------------')
 
     dataset.set_split(train_split)
-    workers=1
+    workers=4
     train_or_val="train"
     kitti_infos_train = dataset.get_infos(train_or_val,num_workers=workers, has_label=True, count_inside_pts=True)
     with open(train_filename, 'wb') as f:
@@ -487,15 +505,15 @@ def create_kitti_infos(dataset_cfg, class_names, data_path, save_path, workers=4
         pickle.dump(kitti_infos_train + kitti_infos_val, f)
     print('Kitti info trainval file is saved to %s' % trainval_filename)
 
-    dataset.set_split('test')
-    kitti_infos_test = dataset.get_infos(num_workers=workers, has_label=False, count_inside_pts=False)
-    with open(test_filename, 'wb') as f:
-        pickle.dump(kitti_infos_test, f)
-    print('Kitti info test file is saved to %s' % test_filename)
+    #dataset.set_split('test')
+    #kitti_infos_test = dataset.get_infos(train_or_val,num_workers=workers, has_label=False, count_inside_pts=False)
+    #with open(test_filename, 'wb') as f:
+    #    pickle.dump(kitti_infos_test, f)
+    #sprint('Kitti info test file is saved to %s' % test_filename)
 
     print('---------------Start create groundtruth database for data augmentation---------------')
-    dataset.set_split(train_split)
-    dataset.create_groundtruth_database(train_filename, split=train_split)
+    #dataset.set_split(train_split)
+    #dataset.create_groundtruth_database(train_filename, split=train_split)
 
     print('---------------Data preparation Done---------------')
 

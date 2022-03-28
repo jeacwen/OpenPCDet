@@ -107,6 +107,7 @@ def main():
         class_names=cfg.CLASS_NAMES,
         batch_size=args.batch_size,
         dist=dist_train, workers=args.workers,
+       # dist=dist_train, workers=1,
         logger=logger,
         training=True,
         merge_all_iters_to_one_epoch=args.merge_all_iters_to_one_epoch,
@@ -199,4 +200,15 @@ def main():
 
 
 if __name__ == '__main__':
+    import numpy as np
+    points = np.loadtxt('/home/dl/users/wending/3D_Detect/OpenPCDet/data/lidar/train/points/000009.txt', dtype=np.float32).reshape(-1, 4)[:,0:3]  # 每个点云文件里的所有点 n*3
+    points_label = np.loadtxt('/home/dl/users/wending/3D_Detect/OpenPCDet/data/lidar/train/labels/000009.txt', dtype=np.float32).reshape(-1, 8) # 每个点云标注文件里的所有点 m*7
+    gt_name_lists = points_label[:,7:8].astype(np.int32).flatten()
+    label_dicts= ['Car', 'Pedestrian', 'Cyclist','Van', 'Truck','Tram','Misc','Person_sitting','DontCare']
+    #gt_names =[]
+    #for i in gt_name_lists:
+    #    gt_names.append(label_dicts[i])
+    gt_names=np.array(label_dicts[n]  for n in gt_name_lists)
+    points_label = points_label[:,0:7]
+    
     main()

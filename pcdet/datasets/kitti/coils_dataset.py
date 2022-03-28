@@ -17,8 +17,8 @@ class CoilsDataset(DatasetTemplate):
         super().__init__(
         dataset_cfg=dataset_cfg, class_names=class_names, training=training, root_path=root_path, logger=logger
         )
-        points_file_list = glob.glob(str(self.root_path / 'training/points' / '*.txt'))
-        labels_file_list = glob.glob(str(self.root_path / 'training/labels' / '*.txt'))
+        points_file_list = glob.glob(str(self.root_path / 'train/points' / '*.txt'))
+        labels_file_list = glob.glob(str(self.root_path / 'train/labels' / '*.txt'))
         points_file_list.sort()
         labels_file_list.sort()
         self.sample_file_list = points_file_list

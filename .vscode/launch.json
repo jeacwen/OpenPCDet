@@ -1,0 +1,20 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: 当前文件",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "/home/dl/users/wending/3D_Detect/OpenPCDet/",
+            //"args": ["--cfg_file=/home/dl/users/wending/3D_Detect/OpenPCDet/tools/cfgs/kitti_models/pointpillar.yaml"],/////////train.py
+           // "args": ["create_kitti_infos", "/home/dl/users/wending/3D_Detect/OpenPCDet/tools/cfgs/dataset_configs/kitti_dataset.yaml"] ,////
+           "args": ["--cfg_file=/home/dl/users/wending/3D_Detect/OpenPCDet/tools/cfgs/lidar_models/pointpillar.yaml"],
+            "justMyCode": true
+        }
+    ]
+}
